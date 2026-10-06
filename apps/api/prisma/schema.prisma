@@ -1,5 +1,5 @@
 datasource db {
-  provider = "postgresql"
+  provider = "sqlite"
   url      = env("DATABASE_URL")
 }
 
@@ -7,42 +7,13 @@ generator client {
   provider = "prisma-client-js"
 }
 
-enum Role {
-  SUPER_ADMIN
-  OWNER
-  ADMIN
-  MEMBER
-  END_CUSTOMER
-}
-
-enum TenantStatus {
-  ACTIVE
-  SUSPENDED
-  CANCELLED
-}
-
-enum FeedbackStatus {
-  OPEN
-  UNDER_REVIEW
-  PLANNED
-  IN_PROGRESS
-  COMPLETED
-  CLOSED
-}
-
-enum RoadmapStatus {
-  PLANNED
-  IN_PROGRESS
-  DONE
-}
-
 model Tenant {
-  id           String        @id @default(uuid()) @db.Uuid
+  id           String        @id @default(uuid())
   name         String
   slug         String        @unique
   customDomain String?       @unique @map("custom_domain")
   planId       String?       @map("plan_id")
-  status       TenantStatus  @default(ACTIVE)
+  status       String        @default("ACTIVE")
   createdAt    DateTime      @default(now()) @map("created_at")
   updatedAt    DateTime      @updatedAt @map("updated_at")
   deletedAt    DateTime?     @map("deleted_at")
@@ -59,7 +30,7 @@ model Tenant {
 }
 
 model User {
-  id           String             @id @default(uuid()) @db.Uuid
+  id           String             @id @default(uuid())
   email        String             @unique
   passwordHash String             @map("password_hash")
   name         String
@@ -73,10 +44,10 @@ model User {
 }
 
 model TenantMembership {
-  id        String   @id @default(uuid()) @db.Uuid
-  userId    String   @map("user_id") @db.Uuid
-  tenantId  String   @map("tenant_id") @db.Uuid
-  role      Role     @default(MEMBER)
+  id        String   @id @default(uuid())
+  userId    String   @map("user_id")
+  tenantId  String   @map("tenant_id")
+  role      String   @default("MEMBER")
   createdAt DateTime @default(now()) @map("created_at")
   updatedAt DateTime @updatedAt @map("updated_at")
 
@@ -89,8 +60,8 @@ model TenantMembership {
 }
 
 model EndCustomer {
-  id        String   @id @default(uuid()) @db.Uuid
-  tenantId  String   @map("tenant_id") @db.Uuid
+  id        String   @id @default(uuid())
+  tenantId  String   @map("tenant_id")
   email     String
   name      String?
   createdAt DateTime @default(now()) @map("created_at")
@@ -104,8 +75,8 @@ model EndCustomer {
 }
 
 model Board {
-  id          String     @id @default(uuid()) @db.Uuid
-  tenantId    String     @map("tenant_id") @db.Uuid
+  id          String     @id @default(uuid())
+  tenantId    String     @map("tenant_id")
   name        String
   slug        String
   description String?
@@ -123,12 +94,12 @@ model Board {
 }
 
 model Feedback {
-  id          String         @id @default(uuid()) @db.Uuid
-  tenantId    String         @map("tenant_id") @db.Uuid
-  boardId     String         @map("board_id") @db.Uuid
+  id          String         @id @default(uuid())
+  tenantId    String         @map("tenant_id")
+  boardId     String         @map("board_id")
   title       String
   description String
-  status      FeedbackStatus @default(OPEN)
+  status      String         @default("OPEN")
   voteCount   Int            @default(0) @map("vote_count")
   authorId    String         @map("author_id")
   authorName  String         @default("Anonim") @map("author_name")
@@ -148,9 +119,9 @@ model Feedback {
 }
 
 model Vote {
-  id         String   @id @default(uuid()) @db.Uuid
-  tenantId   String   @map("tenant_id") @db.Uuid
-  feedbackId String   @map("feedback_id") @db.Uuid
+  id         String   @id @default(uuid())
+  tenantId   String   @map("tenant_id")
+  feedbackId String   @map("feedback_id")
   voterId    String   @map("voter_id")
   createdAt  DateTime @default(now()) @map("created_at")
 
@@ -163,9 +134,9 @@ model Vote {
 }
 
 model Comment {
-  id         String    @id @default(uuid()) @db.Uuid
-  tenantId   String    @map("tenant_id") @db.Uuid
-  feedbackId String    @map("feedback_id") @db.Uuid
+  id         String    @id @default(uuid())
+  tenantId   String    @map("tenant_id")
+  feedbackId String    @map("feedback_id")
   authorId   String    @map("author_id")
   authorName String    @map("author_name")
   body       String
@@ -182,12 +153,12 @@ model Comment {
 }
 
 model RoadmapItem {
-  id          String        @id @default(uuid()) @db.Uuid
-  tenantId    String        @map("tenant_id") @db.Uuid
-  feedbackId  String?       @unique @map("feedback_id") @db.Uuid
+  id          String        @id @default(uuid())
+  tenantId    String        @map("tenant_id")
+  feedbackId  String?       @unique @map("feedback_id")
   title       String
   description String?
-  status      RoadmapStatus @default(PLANNED)
+  status      String        @default("PLANNED")
   position    Int           @default(0)
   createdAt   DateTime      @default(now()) @map("created_at")
   updatedAt   DateTime      @updatedAt @map("updated_at")
@@ -200,7 +171,7 @@ model RoadmapItem {
 }
 
 model Plan {
-  id             String   @id @default(uuid()) @db.Uuid
+  id             String   @id @default(uuid())
   name           String   @unique
   priceMonth     Int      @default(0) @map("price_month")
   maxBoards      Int      @default(1) @map("max_boards")

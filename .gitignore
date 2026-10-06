@@ -11,4 +11,6 @@ build
 .env.*.local
 *.tsbuildinfo
 coverage
+*.db
+*.db-journal
 .DS_Store

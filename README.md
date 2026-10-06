@@ -65,35 +65,23 @@ FeedbackPulse/
 
 ---
 
-## 🚀 Hızlı Başlangıç
+## 🚀 Hızlı Başlangıç (Docker veya PostgreSQL Gerektirmez!)
 
-### 1. Gereksinimler
-- Node.js >= 20.x
-- pnpm >= 9.x veya 12.x
-- Docker & Docker Compose (Opsiyonel veritabanı servisleri için)
+Proje, yerel makinenizde harici bir veritabanı veya Docker kurulumu gerektirmeden **SQLite** tabanlı olarak doğrudan çalışacak şekilde yapılandırılmıştır. (İleride canlıya alırken PostgreSQL'e kolayca geçilebilir).
 
-### 2. Bağımlılıkları Yükleyin
+### 1. Bağımlılıkları Yükleyin
 ```bash
 pnpm install
 ```
 
-### 3. Ortam Değişkenlerini Hazırlayın
-`apps/api/.env.example` dosyasını kopyalayın:
+### 2. Veritabanını Oluşturun ve Tohum Verilerini Yükleyin
 ```bash
-cp apps/api/.env.example apps/api/.env
+pnpm --filter @feedbackpulse/api prisma:push
+pnpm --filter @feedbackpulse/api prisma:seed
 ```
+*Bu komut, yerel SQLite dosyasını (`dev.db`) otomatik oluşturur, demo şirket (`Acme SaaS`), admin kullanıcısı (`demo@acmesaas.com` / `Password123!`), panolar ve örnek geri bildirimleri yükler.*
 
-### 4. Veritabanını Başlatın (Docker Compose)
-```bash
-docker compose up -d
-```
-Prisma istemcisini üretin ve şemayı güncelleyin:
-```bash
-pnpm --filter @feedbackpulse/api prisma:generate
-pnpm --filter @feedbackpulse/api prisma:migrate
-```
-
-### 5. Geliştirme Sunucularını Başlatın
+### 3. Geliştirme Sunucularını Başlatın
 Tüm monorepo'yu tek komutla ayağa kaldırın:
 ```bash
 pnpm dev
@@ -102,6 +90,11 @@ Uygulamalara erişim adresleri:
 - **Web Uygulaması:** [http://localhost:3000](http://localhost:3000)
 - **Backend API:** [http://localhost:4000](http://localhost:4000)
 - **Swagger Dokümantasyonu:** [http://localhost:4000/api/docs](http://localhost:4000/api/docs)
+
+**Hazır Demo Giriş Bilgileri:**
+- **E-posta:** `demo@acmesaas.com`
+- **Şifre:** `Password123!`
+- **Alt Alan Adı:** `acme`
 
 ---
 

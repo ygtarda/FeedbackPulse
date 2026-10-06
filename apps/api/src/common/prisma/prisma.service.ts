@@ -33,9 +33,13 @@ export class PrismaService extends PrismaClient implements OnModuleInit, OnModul
     operation: (prisma: PrismaClient) => Promise<T>,
   ): Promise<T> {
     return this.$transaction(async (tx) => {
-      // PostgreSQL Row Level Security için oturum değişkenini ayarla
-      if (tenantId) {
-        await tx.$executeRawUnsafe(`SET LOCAL app.current_tenant = '${tenantId}';`);
+      // PostgreSQL Row Level Security için oturum değişkenini ayarla (Postgres ortamında)
+      if (tenantId && (process.env.DATABASE_URL?.includes('postgres') || process.env.DATABASE_URL?.includes('postgresql'))) {
+        try {
+          await tx.$executeRawUnsafe(`SET LOCAL app.current_tenant = '${tenantId}';`);
+        } catch {
+          // SQLite veya RLS desteklemeyen ortamlarda sessizce geç
+        }
       }
       return operation(tx as unknown as PrismaClient);
     });
