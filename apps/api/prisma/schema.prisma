@@ -1,0 +1,212 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+enum Role {
+  SUPER_ADMIN
+  OWNER
+  ADMIN
+  MEMBER
+  END_CUSTOMER
+}
+
+enum TenantStatus {
+  ACTIVE
+  SUSPENDED
+  CANCELLED
+}
+
+enum FeedbackStatus {
+  OPEN
+  UNDER_REVIEW
+  PLANNED
+  IN_PROGRESS
+  COMPLETED
+  CLOSED
+}
+
+enum RoadmapStatus {
+  PLANNED
+  IN_PROGRESS
+  DONE
+}
+
+model Tenant {
+  id           String        @id @default(uuid()) @db.Uuid
+  name         String
+  slug         String        @unique
+  customDomain String?       @unique @map("custom_domain")
+  planId       String?       @map("plan_id")
+  status       TenantStatus  @default(ACTIVE)
+  createdAt    DateTime      @default(now()) @map("created_at")
+  updatedAt    DateTime      @updatedAt @map("updated_at")
+  deletedAt    DateTime?     @map("deleted_at")
+
+  memberships  TenantMembership[]
+  boards       Board[]
+  feedbacks    Feedback[]
+  votes        Vote[]
+  comments     Comment[]
+  roadmapItems RoadmapItem[]
+  endCustomers EndCustomer[]
+
+  @@map("tenants")
+}
+
+model User {
+  id           String             @id @default(uuid()) @db.Uuid
+  email        String             @unique
+  passwordHash String             @map("password_hash")
+  name         String
+  avatarUrl    String?            @map("avatar_url")
+  createdAt    DateTime           @default(now()) @map("created_at")
+  updatedAt    DateTime           @updatedAt @map("updated_at")
+
+  memberships  TenantMembership[]
+
+  @@map("users")
+}
+
+model TenantMembership {
+  id        String   @id @default(uuid()) @db.Uuid
+  userId    String   @map("user_id") @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  role      Role     @default(MEMBER)
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([userId, tenantId])
+  @@index([tenantId])
+  @@map("tenant_memberships")
+}
+
+model EndCustomer {
+  id        String   @id @default(uuid()) @db.Uuid
+  tenantId  String   @map("tenant_id") @db.Uuid
+  email     String
+  name      String?
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  tenant    Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+
+  @@unique([tenantId, email])
+  @@index([tenantId])
+  @@map("end_customers")
+}
+
+model Board {
+  id          String     @id @default(uuid()) @db.Uuid
+  tenantId    String     @map("tenant_id") @db.Uuid
+  name        String
+  slug        String
+  description String?
+  isPrivate   Boolean    @default(false) @map("is_private")
+  createdAt   DateTime   @default(now()) @map("created_at")
+  updatedAt   DateTime   @updatedAt @map("updated_at")
+  deletedAt   DateTime?  @map("deleted_at")
+
+  tenant      Tenant     @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  feedbacks   Feedback[]
+
+  @@unique([tenantId, slug])
+  @@index([tenantId])
+  @@map("boards")
+}
+
+model Feedback {
+  id          String         @id @default(uuid()) @db.Uuid
+  tenantId    String         @map("tenant_id") @db.Uuid
+  boardId     String         @map("board_id") @db.Uuid
+  title       String
+  description String
+  status      FeedbackStatus @default(OPEN)
+  voteCount   Int            @default(0) @map("vote_count")
+  authorId    String         @map("author_id")
+  authorName  String         @default("Anonim") @map("author_name")
+  createdAt   DateTime       @default(now()) @map("created_at")
+  updatedAt   DateTime       @updatedAt @map("updated_at")
+  deletedAt   DateTime?      @map("deleted_at")
+
+  tenant      Tenant         @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  board       Board          @relation(fields: [boardId], references: [id], onDelete: Cascade)
+  votes       Vote[]
+  comments    Comment[]
+  roadmapItem RoadmapItem?
+
+  @@index([tenantId])
+  @@index([boardId])
+  @@map("feedbacks")
+}
+
+model Vote {
+  id         String   @id @default(uuid()) @db.Uuid
+  tenantId   String   @map("tenant_id") @db.Uuid
+  feedbackId String   @map("feedback_id") @db.Uuid
+  voterId    String   @map("voter_id")
+  createdAt  DateTime @default(now()) @map("created_at")
+
+  tenant     Tenant   @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  feedback   Feedback @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@unique([feedbackId, voterId])
+  @@index([tenantId])
+  @@map("votes")
+}
+
+model Comment {
+  id         String    @id @default(uuid()) @db.Uuid
+  tenantId   String    @map("tenant_id") @db.Uuid
+  feedbackId String    @map("feedback_id") @db.Uuid
+  authorId   String    @map("author_id")
+  authorName String    @map("author_name")
+  body       String
+  createdAt  DateTime  @default(now()) @map("created_at")
+  updatedAt  DateTime  @updatedAt @map("updated_at")
+  deletedAt  DateTime? @map("deleted_at")
+
+  tenant     Tenant    @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  feedback   Feedback  @relation(fields: [feedbackId], references: [id], onDelete: Cascade)
+
+  @@index([tenantId])
+  @@index([feedbackId])
+  @@map("comments")
+}
+
+model RoadmapItem {
+  id          String        @id @default(uuid()) @db.Uuid
+  tenantId    String        @map("tenant_id") @db.Uuid
+  feedbackId  String?       @unique @map("feedback_id") @db.Uuid
+  title       String
+  description String?
+  status      RoadmapStatus @default(PLANNED)
+  position    Int           @default(0)
+  createdAt   DateTime      @default(now()) @map("created_at")
+  updatedAt   DateTime      @updatedAt @map("updated_at")
+
+  tenant      Tenant        @relation(fields: [tenantId], references: [id], onDelete: Cascade)
+  feedback    Feedback?     @relation(fields: [feedbackId], references: [id], onDelete: SetNull)
+
+  @@index([tenantId])
+  @@map("roadmap_items")
+}
+
+model Plan {
+  id             String   @id @default(uuid()) @db.Uuid
+  name           String   @unique
+  priceMonth     Int      @default(0) @map("price_month")
+  maxBoards      Int      @default(1) @map("max_boards")
+  maxTeamMembers Int      @default(1) @map("max_team_members")
+  maxCustomers   Int      @default(100) @map("max_customers")
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  @@map("plans")
+}
