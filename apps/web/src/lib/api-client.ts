@@ -473,9 +473,20 @@ export const apiClient = {
         if (dto.status) item.status = dto.status;
         if (dto.title) item.title = dto.title;
         if (dto.description !== undefined) item.description = dto.description;
+        if (dto.position !== undefined) item.position = dto.position;
         return item;
       }
       throw new Error('Item not found');
+    }
+  },
+
+  async deleteRoadmapItem(id: string): Promise<void> {
+    try {
+      await fetchWithAuth(`/api/v1/roadmap/${id}`, {
+        method: 'DELETE',
+      });
+    } catch {
+      mockRoadmapItems = mockRoadmapItems.filter((r) => r.id !== id);
     }
   },
 

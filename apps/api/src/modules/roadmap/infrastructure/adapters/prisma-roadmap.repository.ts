@@ -103,6 +103,21 @@ export class PrismaRoadmapRepository implements IRoadmapRepository {
         feedback: true,
       },
     });
+
+    if (raw.feedbackId && data.status) {
+      let feedbackStatus: FeedbackStatus | null = null;
+      if (data.status === RoadmapStatus.PLANNED) feedbackStatus = FeedbackStatus.PLANNED;
+      else if (data.status === RoadmapStatus.IN_PROGRESS) feedbackStatus = FeedbackStatus.IN_PROGRESS;
+      else if (data.status === RoadmapStatus.DONE) feedbackStatus = FeedbackStatus.COMPLETED;
+
+      if (feedbackStatus) {
+        await this.prisma.feedback.update({
+          where: { id: raw.feedbackId },
+          data: { status: feedbackStatus as any },
+        });
+      }
+    }
+
     return this.toDomain(raw);
   }
 
