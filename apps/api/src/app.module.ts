@@ -5,6 +5,11 @@ import { APP_FILTER, APP_INTERCEPTOR } from '@nestjs/core';
 import { IamModule } from './modules/iam/iam.module';
 import { FeedbackModule } from './modules/feedback/feedback.module';
 import { RoadmapModule } from './modules/roadmap/roadmap.module';
+import { ChangelogModule } from './modules/changelog/changelog.module';
+import { BillingModule } from './modules/billing/billing.module';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
+import { WebhookModule } from './modules/webhook/webhook.module';
+import { AiModule } from './modules/ai/ai.module';
 
 import { TenantMiddleware } from './common/rls/tenant.middleware';
 import { TenantContextService } from './common/rls/tenant-context.service';
@@ -21,6 +26,11 @@ import { PrismaService } from './common/prisma/prisma.service';
     IamModule,
     FeedbackModule,
     RoadmapModule,
+    ChangelogModule,
+    BillingModule,
+    AnalyticsModule,
+    WebhookModule,
+    AiModule,
   ],
   providers: [
     PrismaService,

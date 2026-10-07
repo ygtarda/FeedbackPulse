@@ -12,6 +12,9 @@ import {
   Settings,
   LogOut,
   Building,
+  Megaphone,
+  BarChart3,
+  CreditCard,
 } from 'lucide-react';
 
 export function DashboardSidebar() {
@@ -23,6 +26,9 @@ export function DashboardSidebar() {
     { label: 'Genel Bakış', href: '/dashboard', icon: LayoutDashboard },
     { label: 'Panolar & Geri Bildirim', href: '/boards', icon: MessageSquare },
     { label: 'Yol Haritası (Roadmap)', href: '/roadmap', icon: Kanban },
+    { label: 'Yayın Notları (Changelog)', href: '/changelogs', icon: Megaphone },
+    { label: 'Analitik & Raporlar', href: '/analytics', icon: BarChart3 },
+    { label: 'Faturalandırma (Billing)', href: '/billing', icon: CreditCard },
     { label: 'Ayarlar & Takım', href: '/settings', icon: Settings },
   ];
 

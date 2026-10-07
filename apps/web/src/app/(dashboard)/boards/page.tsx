@@ -39,6 +39,31 @@ export default function BoardsPage() {
   const [boardSlug, setBoardSlug] = useState('');
   const [commentBody, setCommentBody] = useState('');
 
+  // AI Duplicates State
+  const [aiDuplicates, setAiDuplicates] = useState<
+    Array<{ id: string; title: string; similarityScore: number }>
+  >([]);
+  const [checkingDuplicates, setCheckingDuplicates] = useState(false);
+
+  React.useEffect(() => {
+    if (!createFeedbackOpen || fbTitle.trim().length < 3) {
+      setAiDuplicates([]);
+      return;
+    }
+    const timer = setTimeout(async () => {
+      setCheckingDuplicates(true);
+      try {
+        const res = await apiClient.detectAiDuplicates(fbTitle, fbDescription);
+        setAiDuplicates(res.duplicates);
+      } catch {
+        // Fallback
+      } finally {
+        setCheckingDuplicates(false);
+      }
+    }, 400);
+    return () => clearTimeout(timer);
+  }, [fbTitle, fbDescription, createFeedbackOpen]);
+
   // Queries
   const { data: boards = [] } = useQuery({
     queryKey: ['boards', currentTenant?.id],
@@ -352,6 +377,35 @@ export default function BoardsPage() {
                   onChange={(e) => setFbTitle(e.target.value)}
                   className="w-full px-3.5 py-2.5 rounded-xl border border-border bg-background text-sm text-foreground focus:outline-none focus:ring-2 focus:ring-indigo-500"
                 />
+                {checkingDuplicates && (
+                  <span className="text-[11px] text-muted-foreground mt-1 block flex items-center gap-1">
+                    <Sparkles className="w-3 h-3 text-indigo-500 animate-spin" /> Benzer talepler taranıyor...
+                  </span>
+                )}
+                {aiDuplicates.length > 0 && (
+                  <div className="mt-2.5 p-3 rounded-2xl bg-amber-500/10 border border-amber-500/20 space-y-2 animate-in fade-in">
+                    <div className="flex items-center gap-1.5 text-xs font-bold text-amber-500">
+                      <Sparkles className="w-3.5 h-3.5 shrink-0" />
+                      <span>Yapay Zeka Benzer Talepler Buldu:</span>
+                    </div>
+                    <div className="space-y-1">
+                      {aiDuplicates.map((dup) => (
+                        <div
+                          key={dup.id}
+                          className="flex items-center justify-between p-2 rounded-xl bg-background/80 border border-border/50 text-xs"
+                        >
+                          <span className="font-semibold text-foreground truncate mr-2">{dup.title}</span>
+                          <span className="px-1.5 py-0.5 rounded-md bg-amber-500/20 text-amber-400 font-mono text-[10px] font-bold shrink-0">
+                            %{dup.similarityScore} Benzer
+                          </span>
+                        </div>
+                      ))}
+                    </div>
+                    <p className="text-[10px] text-muted-foreground">
+                      Mükerrer açmak yerine mevcut talebe oy vererek geliştirilme şansını artırabilirsiniz.
+                    </p>
+                  </div>
+                )}
               </div>
 
               <div>

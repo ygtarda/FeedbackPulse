@@ -33,6 +33,9 @@ export function MarketingNavbar() {
           <Link href="/pricing" className="hover:text-foreground transition-colors">
             Fiyatlandırma
           </Link>
+          <Link href="/changelog" className="hover:text-foreground transition-colors">
+            Yayın Notları
+          </Link>
           <Link href="/#faq" className="hover:text-foreground transition-colors">
             SSS
           </Link>

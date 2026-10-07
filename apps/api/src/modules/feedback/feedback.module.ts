@@ -22,10 +22,12 @@ import { VoteFeedbackUseCase } from './application/use-cases/vote-feedback.use-c
 import { CreateCommentUseCase } from './application/use-cases/create-comment.use-case';
 import { ListCommentsUseCase } from './application/use-cases/list-comments.use-case';
 
+import { BillingModule } from '../billing/billing.module';
 import { BoardController } from './presentation/controllers/board.controller';
 import { FeedbackController } from './presentation/controllers/feedback.controller';
 
 @Module({
+  imports: [BillingModule],
   controllers: [BoardController, FeedbackController],
   providers: [
     PrismaService,

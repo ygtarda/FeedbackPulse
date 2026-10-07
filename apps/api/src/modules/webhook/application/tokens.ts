@@ -1,0 +1,1 @@
+export const WEBHOOK_REPOSITORY = Symbol('WEBHOOK_REPOSITORY');

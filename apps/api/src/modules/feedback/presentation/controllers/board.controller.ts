@@ -14,6 +14,7 @@ import { Role } from '@feedbackpulse/types';
 import { Roles } from '../../../../common/decorators/roles.decorator';
 import { RolesGuard } from '../../../../common/guards/roles.guard';
 import { JwtAuthGuard } from '../../../../common/guards/jwt-auth.guard';
+import { UsageGuard, RequiresQuota } from '../../../billing/application/guards/usage.guard';
 import { CurrentTenant } from '../../../../common/decorators/current-tenant.decorator';
 import { CreateBoardDto } from '../dtos/create-board.dto';
 import { CreateBoardUseCase } from '../../application/use-cases/create-board.use-case';
@@ -24,7 +25,7 @@ import { BOARD_REPOSITORY } from '../../application/tokens';
 
 @ApiTags('Boards')
 @Controller('api/v1/boards')
-@UseGuards(JwtAuthGuard, RolesGuard)
+@UseGuards(JwtAuthGuard, RolesGuard, UsageGuard)
 @ApiBearerAuth()
 export class BoardController {
   constructor(
@@ -35,6 +36,7 @@ export class BoardController {
 
   @Post()
   @Roles(Role.OWNER, Role.ADMIN)
+  @RequiresQuota('board')
   @HttpCode(HttpStatus.CREATED)
   @ApiOperation({ summary: 'Yeni bir feedback panosu oluştur (Yalnızca Owner/Admin)' })
   @ApiResponse({ status: 201, description: 'Pano oluşturuldu' })

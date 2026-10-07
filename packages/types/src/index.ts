@@ -3,3 +3,7 @@ export * from './auth';
 export * from './tenant';
 export * from './feedback';
 export * from './roadmap';
+export * from './changelog';
+export * from './billing';
+export * from './webhook';
+export * from './analytics';

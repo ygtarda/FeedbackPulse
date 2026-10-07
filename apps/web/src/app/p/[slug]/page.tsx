@@ -18,15 +18,17 @@ import {
   Zap,
   ArrowRight,
   Send,
+  Megaphone,
+  Calendar,
 } from 'lucide-react';
-import { FeedbackStatus, RoadmapStatus, FeedbackSummary, RoadmapItemSummary } from '@feedbackpulse/types';
+import { FeedbackStatus, RoadmapStatus, FeedbackSummary, RoadmapItemSummary, ChangelogCategory } from '@feedbackpulse/types';
 
 export default function PublicBoardPage() {
   const params = useParams();
   const slug = (params?.slug as string) || 'acme';
   const queryClient = useQueryClient();
 
-  const [activeTab, setActiveTab] = useState<'feedbacks' | 'roadmap'>('feedbacks');
+  const [activeTab, setActiveTab] = useState<'feedbacks' | 'roadmap' | 'changelog'>('feedbacks');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<FeedbackStatus | 'ALL'>('ALL');
   const [selectedFeedback, setSelectedFeedback] = useState<FeedbackSummary | null>(null);
@@ -61,6 +63,11 @@ export default function PublicBoardPage() {
   const { data: roadmapItems = [], isLoading: loadingRoadmap } = useQuery({
     queryKey: ['public-roadmap', slug],
     queryFn: () => apiClient.listRoadmap(),
+  });
+
+  const { data: changelogs = [], isLoading: loadingChangelogs } = useQuery({
+    queryKey: ['public-changelogs', slug],
+    queryFn: () => apiClient.listPublicChangelogs(slug),
   });
 
   const { data: comments = [], refetch: refetchComments } = useQuery({
@@ -219,6 +226,16 @@ export default function PublicBoardPage() {
               }`}
             >
               <Kanban className="w-3.5 h-3.5" /> Ürün Yol Haritası
+            </button>
+            <button
+              onClick={() => setActiveTab('changelog')}
+              className={`px-4 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-2 ${
+                activeTab === 'changelog'
+                  ? 'bg-indigo-600 text-white shadow-sm'
+                  : 'bg-card text-muted-foreground hover:text-foreground border border-border'
+              }`}
+            >
+              <Megaphone className="w-3.5 h-3.5" /> Yayın Notları
             </button>
           </div>
 
@@ -383,6 +400,59 @@ export default function PublicBoardPage() {
                 </div>
               );
             })}
+          </div>
+        )}
+
+        {/* CHANGELOG TAB */}
+        {activeTab === 'changelog' && (
+          <div className="space-y-6 max-w-3xl mx-auto">
+            {loadingChangelogs ? (
+              <div className="p-12 text-center text-muted-foreground text-xs">Yayın notları yükleniyor...</div>
+            ) : changelogs.length === 0 ? (
+              <div className="p-12 rounded-2xl border border-dashed border-border text-center bg-card/40">
+                <p className="text-sm font-semibold text-foreground">Henüz yayınlanmış bir sürüm notu bulunmuyor.</p>
+              </div>
+            ) : (
+              <div className="space-y-6 relative before:absolute before:inset-0 before:left-3.5 before:w-0.5 before:bg-border/60">
+                {changelogs.map((item) => (
+                  <div key={item.id} className="relative pl-9 group">
+                    <div className="absolute left-1.5 top-5 w-4 h-4 rounded-full border-2 border-indigo-500 bg-background group-hover:bg-indigo-500 transition-colors" />
+
+                    <div className="p-6 rounded-2xl border border-border bg-card shadow-sm space-y-3">
+                      <div className="flex items-center justify-between gap-2 flex-wrap">
+                        <div className="flex items-center gap-2">
+                          {item.version && (
+                            <span className="font-mono text-xs font-bold px-2 py-0.5 rounded-lg bg-secondary text-foreground border border-border">
+                              {item.version}
+                            </span>
+                          )}
+                          <span className="text-[11px] font-bold px-2 py-0.5 rounded-full bg-indigo-500/10 text-indigo-500 border border-indigo-500/20">
+                            {item.category === ChangelogCategory.NEW_FEATURE
+                              ? 'Yeni Özellik'
+                              : item.category === ChangelogCategory.IMPROVEMENT
+                              ? 'İyileştirme'
+                              : 'Hata Düzeltme'}
+                          </span>
+                        </div>
+                        <span className="text-xs text-muted-foreground flex items-center gap-1">
+                          <Calendar className="w-3.5 h-3.5" />
+                          {new Date(item.publishedAt).toLocaleDateString('tr-TR', {
+                            day: 'numeric',
+                            month: 'long',
+                            year: 'numeric',
+                          })}
+                        </span>
+                      </div>
+
+                      <h3 className="text-lg font-bold text-foreground">{item.title}</h3>
+                      <p className="text-xs sm:text-sm text-muted-foreground leading-relaxed whitespace-pre-wrap">
+                        {item.body}
+                      </p>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </main>

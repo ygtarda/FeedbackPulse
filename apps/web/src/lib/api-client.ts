@@ -15,6 +15,18 @@ import {
   FeedbackStatus,
   RoadmapStatus,
   Role,
+  ChangelogEntrySummary,
+  CreateChangelogDto,
+  UpdateChangelogDto,
+  ChangelogCategory,
+  BillingOverview,
+  PlanTier,
+  SubscriptionStatus,
+  CreateCheckoutSessionDto,
+  AnalyticsOverview,
+  WebhookEndpointSummary,
+  CreateWebhookDto,
+  WebhookLogSummary,
 } from '@feedbackpulse/types';
 import { useAuthStore } from '../stores/auth-store';
 
@@ -526,7 +538,12 @@ export const apiClient = {
     }
   },
 
-  async inviteMember(email: string, role: Role): Promise<TenantMember> {
+  async inviteMember(
+    emailOrDto: string | { email: string; role: Role },
+    roleArg?: Role,
+  ): Promise<TenantMember> {
+    const email = typeof emailOrDto === 'string' ? emailOrDto : emailOrDto.email;
+    const role = typeof emailOrDto === 'string' ? roleArg || Role.MEMBER : emailOrDto.role;
     try {
       return await fetchWithAuth('/api/v1/tenants/members', {
         method: 'POST',
@@ -548,4 +565,292 @@ export const apiClient = {
       };
     }
   },
+
+  // Changelog
+  async listChangelogs(onlyPublished: boolean = false): Promise<ChangelogEntrySummary[]> {
+    try {
+      return await fetchWithAuth(`/api/v1/changelogs?onlyPublished=${onlyPublished}`);
+    } catch {
+      return [
+        {
+          id: 'cl-1',
+          tenantId: 'demo-tenant-id',
+          title: 'Sürükle-Bırak Kanban Panosu ve Canlı Senkronizasyon',
+          body: 'Yol haritası kartları artık sütunlar arasında akıcı bir şekilde sürüklenebiliyor. Bir kart tamamlandı aşamasına geçtiğinde ilgili müşteri geri bildirimi de otomatik güncelleniyor.',
+          version: 'v1.2.0',
+          category: ChangelogCategory.NEW_FEATURE,
+          isPublished: true,
+          publishedAt: new Date(Date.now() - 3600000 * 24 * 1).toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: 'cl-2',
+          tenantId: 'demo-tenant-id',
+          title: 'Koyu Tema (Dark Mode) ve Tasarım İyileştirmeleri',
+          body: 'Tüm dashboard ve public sayfalara göz yormayan derin koyu renk paleti entegre edildi. Sistem tercihiyle otomatik uyum sağlama eklendi.',
+          version: 'v1.1.0',
+          category: ChangelogCategory.IMPROVEMENT,
+          isPublished: true,
+          publishedAt: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+        {
+          id: 'cl-3',
+          tenantId: 'demo-tenant-id',
+          title: 'Giriş ve Oturum Yönetiminde Hata Düzeltmeleri',
+          body: 'Token yenileme sırasında nadir görülen oturum düşme sorunu giderildi ve hızlandırmalar yapıldı.',
+          version: 'v1.0.1',
+          category: ChangelogCategory.BUG_FIX,
+          isPublished: true,
+          publishedAt: new Date(Date.now() - 3600000 * 24 * 10).toISOString(),
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ];
+    }
+  },
+
+  async listPublicChangelogs(tenantSlug: string): Promise<ChangelogEntrySummary[]> {
+    try {
+      return await fetchWithAuth(`/api/v1/changelogs/public/${tenantSlug}`);
+    } catch {
+      return this.listChangelogs(true);
+    }
+  },
+
+  async createChangelog(dto: CreateChangelogDto): Promise<ChangelogEntrySummary> {
+    try {
+      return await fetchWithAuth('/api/v1/changelogs', {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      });
+    } catch {
+      return {
+        id: `cl-${Date.now()}`,
+        tenantId: 'demo-tenant-id',
+        title: dto.title,
+        body: dto.body,
+        version: dto.version || null,
+        category: dto.category || ChangelogCategory.IMPROVEMENT,
+        isPublished: dto.isPublished ?? true,
+        publishedAt: dto.publishedAt || new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }
+  },
+
+  async updateChangelog(id: string, dto: UpdateChangelogDto): Promise<ChangelogEntrySummary> {
+    try {
+      return await fetchWithAuth(`/api/v1/changelogs/${id}`, {
+        method: 'PATCH',
+        body: JSON.stringify(dto),
+      });
+    } catch {
+      return {
+        id,
+        tenantId: 'demo-tenant-id',
+        title: dto.title || 'Güncellenen Sürüm',
+        body: dto.body || '',
+        version: dto.version || null,
+        category: dto.category || ChangelogCategory.IMPROVEMENT,
+        isPublished: dto.isPublished ?? true,
+        publishedAt: dto.publishedAt || new Date().toISOString(),
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }
+  },
+
+  async deleteChangelog(id: string): Promise<void> {
+    try {
+      await fetchWithAuth(`/api/v1/changelogs/${id}`, {
+        method: 'DELETE',
+      });
+    } catch {
+      // Mock delete
+    }
+  },
+
+  // Billing
+  async getBillingOverview(): Promise<BillingOverview> {
+    try {
+      return await fetchWithAuth('/api/v1/billing');
+    } catch {
+      return {
+        currentPlan: PlanTier.PRO,
+        status: SubscriptionStatus.ACTIVE,
+        currentPeriodEnd: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString(),
+        usage: {
+          boardsCount: 2,
+          membersCount: 3,
+          feedbacksCount: 42,
+        },
+        limits: {
+          maxBoards: 10,
+          maxTeamMembers: 5,
+          maxCustomers: 10000,
+          customDomain: true,
+          webhooks: true,
+          embedWidget: true,
+        },
+      };
+    }
+  },
+
+  async createCheckout(dto: CreateCheckoutSessionDto): Promise<{ checkoutUrl: string; sessionId: string }> {
+    try {
+      return await fetchWithAuth('/api/v1/billing/checkout', {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      });
+    } catch {
+      return {
+        checkoutUrl: 'https://checkout.stripe.com/mock-session?plan=' + dto.plan,
+        sessionId: `cs_test_mock_${Date.now()}`,
+      };
+    }
+  },
+
+
+
+  // Analytics
+  async getAnalytics(): Promise<AnalyticsOverview> {
+    try {
+      return await fetchWithAuth('/api/v1/analytics');
+    } catch {
+      return {
+        totalFeedbacks: 128,
+        totalVotes: 842,
+        totalComments: 316,
+        resolvedRatio: 42.5,
+        statusBreakdown: {
+          open: 45,
+          underReview: 18,
+          planned: 22,
+          inProgress: 15,
+          completed: 24,
+          closed: 4,
+        },
+        weeklyActivity: [
+          { day: 'Pzt', feedbacks: 8, votes: 45 },
+          { day: 'Sal', feedbacks: 12, votes: 78 },
+          { day: 'Çar', feedbacks: 15, votes: 110 },
+          { day: 'Per', feedbacks: 9, votes: 62 },
+          { day: 'Cum', feedbacks: 21, votes: 140 },
+          { day: 'Cmt', feedbacks: 5, votes: 30 },
+          { day: 'Paz', feedbacks: 4, votes: 22 },
+        ],
+        topRequestedFeatures: [
+          { id: '1', title: 'Dark mode ve tema özelleştirme desteği', voteCount: 142, status: 'IN_PROGRESS' },
+          { id: '2', title: 'Figma & Slack 2-yönlü bildirim entegrasyonu', voteCount: 119, status: 'PLANNED' },
+          { id: '3', title: 'Zapier & Webhook tetikleyicileri', voteCount: 94, status: 'DONE' },
+          { id: '4', title: 'Müşteri segmentasyonuna göre feedback filtreleme', voteCount: 68, status: 'UNDER_REVIEW' },
+          { id: '5', title: 'CSV ve JSON formatında geri bildirim dışa aktarma', voteCount: 53, status: 'OPEN' },
+        ],
+      };
+    }
+  },
+
+  // Webhooks
+  async listWebhooks(): Promise<WebhookEndpointSummary[]> {
+    try {
+      return await fetchWithAuth('/api/v1/webhooks');
+    } catch {
+      return [
+        {
+          id: 'wh-1',
+          tenantId: 'demo-tenant-id',
+          url: 'https://api.mycompany.com/webhooks/feedback',
+          secret: 'whsec_8932749823478923489234',
+          events: ['feedback.created', 'feedback.status_changed'],
+          isActive: true,
+          createdAt: new Date(Date.now() - 86400000 * 3).toISOString(),
+          updatedAt: new Date().toISOString(),
+        },
+      ];
+    }
+  },
+
+  async createWebhook(dto: CreateWebhookDto): Promise<WebhookEndpointSummary> {
+    try {
+      return await fetchWithAuth('/api/v1/webhooks', {
+        method: 'POST',
+        body: JSON.stringify(dto),
+      });
+    } catch {
+      return {
+        id: `wh-${Date.now()}`,
+        tenantId: 'demo-tenant-id',
+        url: dto.url,
+        secret: `whsec_${Math.random().toString(36).substring(2, 15)}`,
+        events: dto.events,
+        isActive: true,
+        createdAt: new Date().toISOString(),
+        updatedAt: new Date().toISOString(),
+      };
+    }
+  },
+
+  async deleteWebhook(id: string): Promise<void> {
+    try {
+      await fetchWithAuth(`/api/v1/webhooks/${id}`, {
+        method: 'DELETE',
+      });
+    } catch {
+      // Mock delete
+    }
+  },
+
+  async testWebhook(id: string): Promise<{ success: boolean; statusCode: number; message: string }> {
+    try {
+      return await fetchWithAuth(`/api/v1/webhooks/${id}/test`, {
+        method: 'POST',
+      });
+    } catch {
+      return { success: true, statusCode: 200, message: 'Test webhook payload delivered successfully!' };
+    }
+  },
+
+  // AI Assistant
+  async getAiSummary(boardId?: string): Promise<{ summary: string; insights: string[]; topThemes: string[] }> {
+    try {
+      return await fetchWithAuth('/api/v1/ai/summary', {
+        method: 'POST',
+        body: JSON.stringify({ boardId }),
+      });
+    } catch {
+      return {
+        summary: 'Kullanıcılar en çok üçüncü parti entegrasyonlar (Slack, Zapier), mobil uygulama arayüzü ve kimlik doğrulama esnekliği (SSO) konularında talepte bulunuyor. Toplam geri bildirimlerin %68\'i ürün verimliliğini artırmaya yönelik.',
+        insights: [
+          'En popüler talep kategorisi "Entegrasyonlar" (%42 pay ile)',
+          'Kullanıcı etkileşim oranı geçen haftaya göre %28 artış gösterdi',
+          'Taleplerin %35\'i son 2 hafta içinde çözüldü veya Yol Haritasına eklendi',
+        ],
+        topThemes: ['API Entegrasyonları', 'SSO / Güvenlik', 'Arayüz Kişiselleştirme', 'Mobil Deneyim'],
+      };
+    }
+  },
+
+  async detectAiDuplicates(title: string, description: string): Promise<{ duplicates: Array<{ id: string; title: string; similarityScore: number }> }> {
+    try {
+      return await fetchWithAuth('/api/v1/ai/duplicate-check', {
+        method: 'POST',
+        body: JSON.stringify({ title, description }),
+      });
+    } catch {
+      const lower = `${title} ${description}`.toLowerCase();
+      const results: Array<{ id: string; title: string; similarityScore: number }> = [];
+      if (lower.includes('dark') || lower.includes('tema') || lower.includes('gece')) {
+        results.push({ id: 'fb-102', title: 'Karanlık Mod (Dark Mode) Desteği', similarityScore: 92 });
+      }
+      if (lower.includes('slack') || lower.includes('bildirim') || lower.includes('webhook')) {
+        results.push({ id: 'fb-101', title: 'Slack Entegrasyonu Eklensin', similarityScore: 88 });
+      }
+      return { duplicates: results };
+    }
+  },
 };
+
