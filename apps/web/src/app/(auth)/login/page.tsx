@@ -93,9 +93,9 @@ export default function LoginPage() {
             <div>
               <div className="flex items-center justify-between mb-1.5">
                 <label className="text-xs font-semibold text-foreground">Şifre</label>
-                <span className="text-xs text-indigo-500 hover:underline cursor-pointer">
+                <Link href="/forgot-password" className="text-xs text-indigo-500 hover:underline">
                   Şifremi unuttum
-                </span>
+                </Link>
               </div>
               <input
                 type="password"

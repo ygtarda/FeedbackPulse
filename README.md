@@ -125,7 +125,9 @@ pnpm --filter @feedbackpulse/api test
 2. **Fiyatlandırma (`/pricing`):** Free, Pro ve Business planlarının özellik karşılaştırma tablosu.
 3. **Kayıt Ol (`/register`):** Şirket adı, alt alan adı (subdomain) ve kullanıcı hesabı oluşturma.
 4. **Giriş Yap (`/login`):** Kullanıcı oturum açma ve çalışma alanına bağlanma.
-5. **Dashboard (`/dashboard`):** Toplam feedback, oy sayıları, aktif panolar ve son aktiviteler.
-6. **Panolar & Geri Bildirim (`/boards`):** Çoklu pano yönetimi, oy verme, filtreleme, detay drawer ve yorumlar.
-7. **Yol Haritası (`/roadmap`):** Kanban panosu (Planlandı, Geliştiriliyor, Tamamlandı sütunları).
-8. **Ayarlar & Takım (`/settings`):** Çalışma alanı bilgileri, takım davetleri ve web widget entegrasyon kodu.
+5. **Şifremi Unuttum (`/forgot-password`):** Şifre sıfırlama talep akışı.
+6. **Müşteri Topluluk Panosu (`/p/[slug]`):** Tenant'ın son kullanıcıları için izole public feedback toplama, oy verme ve roadmap takip sayfası.
+7. **Dashboard (`/dashboard`):** Toplam feedback, oy sayıları, aktif panolar ve son aktiviteler.
+8. **Panolar & Geri Bildirim (`/boards`):** Çoklu pano yönetimi, oy verme, filtreleme, detay drawer ve yorumlar.
+9. **Yol Haritası (`/roadmap`):** Sürükle-bırak (Drag-and-Drop) destekli Kanban panosu (Planlandı, Geliştiriliyor, Tamamlandı sütunları).
+10. **Ayarlar & Takım (`/settings`):** Çalışma alanı bilgileri, takım davetleri ve web widget entegrasyon kodu.

@@ -47,9 +47,19 @@ export function DashboardHeader() {
           </div>
         )}
       </div>
-
       {/* Right controls */}
       <div className="flex items-center gap-3">
+        {/* Public Board Link */}
+        <a
+          href={`/p/${currentTenant?.slug || 'acme'}`}
+          target="_blank"
+          rel="noreferrer"
+          className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold border border-border bg-card hover:bg-secondary/70 text-foreground transition-colors shadow-sm"
+        >
+          <ExternalLink className="w-3.5 h-3.5 text-indigo-500" />
+          <span>Public Pano</span>
+        </a>
+
         {/* Plan badge */}
         <span className="hidden sm:inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-xs font-semibold bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 border border-indigo-500/20">
           <Shield className="w-3.5 h-3.5" />
