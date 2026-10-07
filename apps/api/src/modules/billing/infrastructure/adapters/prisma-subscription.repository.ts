@@ -23,26 +23,26 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
   }
 
   async findByTenantId(tenantId: string): Promise<SubscriptionEntity | null> {
-    const raw = await this.prisma.subscription.findFirst({
+    const raw = await (this.prisma as any).subscription.findFirst({
       where: { tenantId },
     });
     return raw ? this.toDomain(raw) : null;
   }
 
   async findByStripeSubscriptionId(stripeSubscriptionId: string): Promise<SubscriptionEntity | null> {
-    const raw = await this.prisma.subscription.findUnique({
+    const raw = await (this.prisma as any).subscription.findUnique({
       where: { stripeSubscriptionId },
     });
     return raw ? this.toDomain(raw) : null;
   }
 
   async createOrUpdate(sub: SubscriptionEntity): Promise<SubscriptionEntity> {
-    const existing = await this.prisma.subscription.findFirst({
+    const existing = await (this.prisma as any).subscription.findFirst({
       where: { tenantId: sub.tenantId },
     });
 
     if (existing) {
-      const raw = await this.prisma.subscription.update({
+      const raw = await (this.prisma as any).subscription.update({
         where: { id: existing.id },
         data: {
           planId: sub.planId,
@@ -55,7 +55,7 @@ export class PrismaSubscriptionRepository implements ISubscriptionRepository {
       return this.toDomain(raw);
     }
 
-    const raw = await this.prisma.subscription.create({
+    const raw = await (this.prisma as any).subscription.create({
       data: {
         tenantId: sub.tenantId,
         planId: sub.planId,

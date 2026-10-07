@@ -39,7 +39,7 @@ export class UsageGuard implements CanActivate {
     }
 
     // Get tenant subscription
-    const sub = await this.prisma.subscription.findFirst({
+    const sub = await (this.prisma as any).subscription.findFirst({
       where: { tenantId },
     });
 

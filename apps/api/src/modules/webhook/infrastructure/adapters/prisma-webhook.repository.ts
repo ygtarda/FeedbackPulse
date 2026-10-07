@@ -15,7 +15,7 @@ export class PrismaWebhookRepository implements IWebhookRepository {
     events: string[];
     isActive?: boolean;
   }): Promise<WebhookEndpointEntity> {
-    const raw = await this.prisma.webhookEndpoint.create({
+    const raw = await (this.prisma as any).webhookEndpoint.create({
       data: {
         tenantId: data.tenantId,
         url: data.url,
@@ -29,7 +29,7 @@ export class PrismaWebhookRepository implements IWebhookRepository {
   }
 
   async findByTenantId(tenantId: string): Promise<WebhookEndpointEntity[]> {
-    const records = await this.prisma.webhookEndpoint.findMany({
+    const records = await (this.prisma as any).webhookEndpoint.findMany({
       where: { tenantId },
       orderBy: { createdAt: 'desc' },
     });
@@ -37,7 +37,7 @@ export class PrismaWebhookRepository implements IWebhookRepository {
   }
 
   async findById(id: string, tenantId: string): Promise<WebhookEndpointEntity | null> {
-    const raw = await this.prisma.webhookEndpoint.findFirst({
+    const raw = await (this.prisma as any).webhookEndpoint.findFirst({
       where: { id, tenantId },
     });
     if (!raw) return null;
@@ -45,7 +45,7 @@ export class PrismaWebhookRepository implements IWebhookRepository {
   }
 
   async delete(id: string, tenantId: string): Promise<void> {
-    await this.prisma.webhookEndpoint.deleteMany({
+    await (this.prisma as any).webhookEndpoint.deleteMany({
       where: { id, tenantId },
     });
   }
@@ -57,7 +57,7 @@ export class PrismaWebhookRepository implements IWebhookRepository {
     statusCode: number | null;
     success: boolean;
   }): Promise<WebhookLogSummary> {
-    const log = await this.prisma.webhookLog.create({
+    const log = await (this.prisma as any).webhookLog.create({
       data: {
         endpointId: data.endpointId,
         event: data.event,
